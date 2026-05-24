@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>모바일 지원 스마트 면접 연습</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --accent: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 550px;
+        }
+
+        .hidden { display: none !important; }
+
+        /* 세팅 화면 그리드 */
+        .setup-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+            padding: 24px;
+        }
+
+        .setup-left, .setup-right {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        select, input[type="number"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--card);
+            outline: none;
+            -webkit-appearance: none; /* iOS 스타일 제거 */
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 48px; /* 모바일 터치 최소 높이 */
+        }
+
+        .btn:active { background: #1d4ed8; }
+        .btn-secondary { background: #e2e8f0; color: var(--text); }
+
+        .question-item {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .question-list-container {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 8px;
+        }
+
+        /* 인터뷰 화면 그리드 */
+        .interview-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            min-height: 500px;
+        }
+
+        .interview-left {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-right: 1px solid var(--border);
+        }
+
+        .interview-right {
+            background: #0f172a;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            position: relative;
+            min-height: 200px;
+        }
+
+        #webcam-view {
+            width: 100%;
+            max-width: 400px;
+            height: 220px;
+            background: #1e293b;
+            border-radius: 12px;
+            object-fit: cover;
+            transform: rotateY(180deg);
+        }
+
+        .camera-placeholder {
+            position: absolute;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .timer-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .timer-val {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .timer-val.warning { color: var(--accent); }
+
+        .badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-tail { background: #fff7ed; color: #ea580c; }
+
+        .question-display {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            min-height: 80px;
+        }
+
+        .keyword-zone { margin-top: 12px; }
+        .keyword-title { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+        .keyword-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        
+        .keyword-tag {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .keyword-tag.checked { background: var(--success); color: white; border-color: var(--success); }
+
+        /* 피드백 화면 */
+        .feedback-container {
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .feedback-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .rating-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .rating-field {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .stars { display: flex; gap: 4px; }
+        .star { cursor: pointer; font-size: 18px; color: #cbd5e1; }
+        .star.active { color: #f59e0b; }
+
+        audio { width: 100%; margin-top: 10px; }
+
+        /* =======================================================
+           ★ 모바일 반응형 미디어 쿼리 (768px 이하 디바이스)
+        ========================================================= */
+        @media (max-width: 768px) {
+            body { padding: 4px; }
+            .app-container { border-radius: 12px; min-height: auto; }
+            
+            /* 세팅 화면 한 줄 정렬 */
+            .setup-grid { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+            
+            /* 인터뷰 화면 위아래로 분할 */
+            .interview-grid { grid-template-columns: 1fr; }
+            .interview-left { order: 2; padding: 16px; border-right: none; border-top: 1px solid var(--border); }
+            .interview-right { order: 1; padding: 12px; min-height: 180px; }
+            #webcam-view { height: 160px; }
+            
+            .question-display { font-size: 16px; min-height: 60px; }
+            .timer-val { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- 세팅 화면 -->
+    <div id="setup-screen" class="setup-grid">
+        <div class="setup-left">
+            <div>
+                <h1 style="font-size: 18px; font-weight:800; margin-bottom:2px;">모바일 면접 트레이너</h1>
+                <p style="color: var(--muted); font-size: 12px;">실전형 모바일 면접을 준비해 보세요.</p>
+            </div>
+            
+            <div class="card">
+                <div class="section-title">⚙️ 옵션</div>
+                <div class="form-group">
+                    <label>답변 시간 (초)</label>
+                    <input type="number" id="time-limit" value="60" min="10">
+                </div>
+                <div class="form-group">
+                    <label>질문 자동 읽기 (TTS)</label>
+                    <select id="tts-toggle">
+                        <option value="true">켬</option>
+                        <option value="false">끔</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>꼬리 질문 확률</label>
+                    <select id="tail-ratio">
+                        <option value="0.5">50% 확률</option>
+                        <option value="1">100% 출제</option>
+                        <option value="0">출제 안 함</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>카메라 사용 여부</label>
+                    <select id="camera-toggle" onchange="toggleCameraSetup()">
+                        <option value="true">전면 카메라 켜기</option>
+                        <option value="false">카메라 끄기</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn" onclick="startInterview()">면접 시작하기 →</button>
+        </div>
+
+        <div class="setup-right">
+            <div class="card">
+                <div class="section-title">📂 질문 템플릿</div>
+                <select id="template-select" onchange="applyTemplate()" style="margin-bottom: 12px;">
+                    <option value="custom">직접 입력</option>
+                    <option value="hr">인성/HR 질문</option>
+                    <option value="tech">IT 개발자 질문</option>
+                    <option value="marketing">마케팅/기획 질문</option>
+                </select>
+
+                <div class="section-title" style="margin-top: 8px;">📝 질문 / 핵심 키워드</div>
+                <div class="question-list-container" id="question-list"></div>
+                <button class="btn btn-secondary" style="width:100%;" onclick="addQuestionField()">+ 질문 추가</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 인터뷰 화면 -->
+    <div id="interview-screen" class="hidden">
+        <div class="interview-grid">
+            <div class="interview-right">
+                <span class="camera-placeholder" id="cam-placeholder">카메라 꺼짐</span>
+                <!-- iOS 오작동 방지를 위한 playsinline 속성 추가 -->
+                <video id="webcam-view" autoplay muted playsinline webkit-playsinline></video>
+                <div style="margin-top:8px; font-size:12px; color:#94a3b8; display:flex; align-items:center; gap:4px;">
+                    <span style="display:inline-block; width:6px; height:6px; background:var(--accent); border-radius:50%;"></span>
+                    녹음 중
+                </div>
+            </div>
+            
+            <div class="interview-left">
+                <div>
+                    <div class="timer-container">
+                        <span class="badge" id="step-badge">질문 1</span>
+                        <div class="timer-val" id="timer-display">00:00</div>
+                    </div>
+                    <div class="question-display" id="question-display">불러오는 중...</div>
+                    
+                    <div class="keyword-zone" id="keyword-zone">
+                        <div class="keyword-title">키워드 체크</div>
+                        <div class="keyword-tags" id="keyword-tags-target"></div>
+                    </div>
+                </div>
+                <div style="display: flex; gap:10px; margin-top:16px;">
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="stopInterview()">중단</button>
+                    <button class="btn" style="flex: 1.5;" id="next-btn" onclick="handleNext()">다음 →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 피드백 화면 -->
+    <div id="feedback-screen" class="feedback-container hidden">
+        <h1 style="font-size:18px; margin-bottom:4px;">자가 피드백</h1>
+        <p style="color:var(--muted); margin-bottom:16px; font-size:12px;">녹음된 답변을 평가하고 기록해 보세요.</p>
+        
+        <div id="feedback-list"></div>
+
+        <div style="text-align: right; margin-top:16px;">
+            <button class="btn" onclick="location.reload()">처음으로</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 질문 데이터 정의
+    const templates = {
+        hr: [
+            { q: "간단한 자기소개와 지원 동기를 말씀해 주세요.", k: "자기소개,동기,강점" },
+            { q: "상사나 동료와 갈등이 생겼을 때 어떻게 해결하겠습니까?", q_tail: "과거에 갈등을 합리적으로 해결했던 실제 경험이 있습니까?", k: "경청,조율" }
+        ],
+        tech: [
+            { q: "본인이 경험한 주력 기술 스택과 그것을 선정한 이유를 말해 주세요.", k: "기술명,이유,장점" },
+            { q: "프로젝트 중 기술적 난관과 이를 해결했던 과정을 설명해 주세요.", q_tail: "그 해결 방법의 아쉬운 점이나 대안책은 없었습니까?", k: "문제,해결책" }
+        ],
+        marketing: [
+            { q: "본인이 기획한 프로젝트 중 가장 성공적이었던 일은 무엇인가요?", k: "목표,성과,기여도" },
+            { q: "제한된 리소스로 효율을 극대화해야 한다면 어떤 전략을 취하겠습니까?", k: "우선순위,데이터" }
+        ]
+    };
+
+    const generalFollowUps = [
+        "그 당시의 선택이 최선이라고 판단한 이유는 무엇이었나요?",
+        "이후 동일한 상황을 맞닥뜨린다면 어떻게 다르게 행동하겠습니까?"
+    ];
+
+    let interviewSession = [];
+    let currentIdx = 0;
+    let timer = null;
+    let timeLeft = 0;
+    let mediaStream = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isFollowUpStep = false;
+    let recordedAudios = [];
+
+    window.onload = () => applyTemplate();
+
+    function toggleCameraSetup() {
+        const toggle = document.getElementById('camera-toggle').value === 'true';
+        document.getElementById('cam-placeholder').style.display = toggle ? 'none' : 'block';
+    }
+
+    function applyTemplate() {
+        const type = document.getElementById('template-select').value;
+        const container = document.getElementById('question-list');
+        container.innerHTML = '';
+        const list = templates[type] || [{ q: "", k: "" }];
+        list.forEach(item => addQuestionField(item.q, item.k, item.q_tail));
+    }
+
+    function addQuestionField(question = "", keywords = "", tail = "") {
+        const container = document.getElementById('question-list');
+        const div = document.createElement('div');
+        div.className = 'question-item';
+        div.innerHTML = `
+            <input type="text" placeholder="질문" value="${question}" style="flex:2;" class="q-val">
+            <input type="text" placeholder="키워드(콤마구분)" value="${keywords}" style="flex:1;" class="k-val">
+            <input type="hidden" class="tail-val" value="${tail}">
+            <button class="btn btn-secondary" onclick="this.parentElement.remove()" style="padding:10px; min-height:auto; height:100%;">X</button>
+        `;
+        container.appendChild(div);
+    }
+
+    // 모바일 전면 카메라 명시 지정
+    async function startCamera() {
+        const cameraOn = document.getElementById('camera-toggle').value === 'true';
+        const constraints = {
+            audio: true,
+            video: cameraOn ? { facingMode: "user" } : false // 전면(셀프) 카메라 고정
+        };
+
+        try {
+            mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+            if (cameraOn) {
+                document.getElementById('webcam-view').srcObject = mediaStream;
+                document.getElementById('cam-placeholder').classList.add('hidden');
+            }
+        } catch (e) {
+            console.warn("전체 장치 연결 오류:", e);
+            // 카메라 없이 오디오만 시도
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                alert("답변 녹음을 하려면 마이크 접근 권한이 필요합니다.");
+            }
+        }
+    }
+
+    // 모바일 기기별 오디오 미디어 타입 설정 지원 자동 감지
+    function startRecording() {
+        if (!mediaStream) return;
+        audioChunks = [];
+
+        let options = {};
+        if (typeof MediaRecorder !== 'undefined') {
+            // 디바이스 지원 상태에 맞춰 분기 처리
+            if (MediaRecorder.isTypeSupported('audio/webm')) {
+                options = { mimeType: 'audio/webm' };
+            } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                options = { mimeType: 'audio/mp4' }; // 아이폰 계열 호환성 향상
+            }
+        }
+
+        try {
+            mediaRecorder = new MediaRecorder(mediaStream, options);
+            mediaRecorder.ondataavailable = e => {
+                if (e.data.size > 0) audioChunks.push(e.data);
+            };
+            mediaRecorder.onstop = () => {
+                const mimeType = options.mimeType || 'audio/webm';
+                const audioBlob = new Blob(audioChunks, { type: mimeType });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                recordedAudios.push({
+                    idx: currentIdx,
+                    isFollowUp: isFollowUpStep,
+                    question: document.getElementById('question-display').textContent,
+                    audioUrl: audioUrl
+                });
+            };
+            mediaRecorder.start();
+        } catch (err) {
+            console.error("녹음 시작 실패:", err);
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+    }
+
+    async function startInterview() {
+        const qElements = document.querySelectorAll('.q-val');
+        const kElements = document.querySelectorAll('.k-val');
+        const tailElements = document.querySelectorAll('.tail-val');
+        
+        interviewSession = [];
+        qElements.forEach((el, i) => {
+            if (el.value.trim()) {
+                interviewSession.push({
+                    q: el.value.trim(),
+                    keywords: kElements[i].value ? kElements[i].value.split(',').map(x=>x.trim()) : [],
+                    q_tail: tailElements[i].value || null
+                });
+            }
+        });
+
+        if (interviewSession.length === 0) {
+            alert('질문을 추가해 주세요.');
+            return;
+        }
+
+        await startCamera();
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('interview-screen').classList.remove('hidden');
+        currentIdx = 0;
+        isFollowUpStep = false;
+        loadStep();
+    }
+
+    function loadStep() {
+        const currentData = interviewSession[currentIdx];
+        let currentQuestion = "";
+
+        if (isFollowUpStep) {
+            currentQuestion = currentData.q_tail || generalFollowUps[Math.floor(Math.random() * generalFollowUps.length)];
+            document.getElementById('step-badge').textContent = `꼬리 질문`;
+            document.getElementById('step-badge').classList.add('badge-tail');
+            document.getElementById('keyword-zone').classList.add('hidden');
+        } else {
+            currentQuestion = currentData.q;
+            document.getElementById('step-badge').textContent = `질문 ${currentIdx + 1}`;
+            document.getElementById('step-badge').classList.remove('badge-tail');
+            
+            const kwContainer = document.getElementById('keyword-tags-target');
+            kwContainer.innerHTML = '';
+            if (currentData.keywords.length > 0 && currentData.keywords[0] !== "") {
+                document.getElementById('keyword-zone').classList.remove('hidden');
+                currentData.keywords.forEach(kw => {
+                    const tag = document.createElement('span');
+                    tag.className = 'keyword-tag';
+                    tag.textContent = kw;
+                    tag.onclick = () => tag.classList.toggle('checked');
+                    kwContainer.appendChild(tag);
+                });
+            } else {
+                document.getElementById('keyword-zone').classList.add('hidden');
+            }
+        }
+
+        document.getElementById('question-display').textContent = currentQuestion;
+
+        if (document.getElementById('tts-toggle').value === 'true') {
+            speak(currentQuestion);
+        }
+
+        timeLeft = parseInt(document.getElementById('time-limit').value) || 60;
+        updateTimerDisplay();
+        clearInterval(timer);
+        timer = setInterval(countdown, 1000);
+        
+        startRecording();
+    }
+
+    function countdown() {
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            handleNext();
+            return;
+        }
+        timeLeft--;
+        updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        const display = document.getElementById('timer-display');
+        display.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        if (timeLeft <= 10) display.classList.add('warning');
+        else display.classList.remove('warning');
+    }
+
+    function handleNext() {
+        stopRecording();
+        window.speechSynthesis.cancel();
+
+        const currentData = interviewSession[currentIdx];
+        const tailRatio = parseFloat(document.getElementById('tail-ratio').value);
+
+        if (!isFollowUpStep && (currentData.q_tail || Math.random() < tailRatio)) {
+            isFollowUpStep = true;
+            setTimeout(loadStep, 600);
+        } else {
+            isFollowUpStep = false;
+            currentIdx++;
+            if (currentIdx < interviewSession.length) {
+                setTimeout(loadStep, 600);
+            } else {
+                setTimeout(finishInterview, 600);
+            }
+        }
+    }
+
+    function finishInterview() {
+        clearInterval(timer);
+        window.speechSynthesis.cancel();
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+        }
+        document.getElementById('interview-screen').classList.add('hidden');
+        document.getElementById('feedback-screen').classList.remove('hidden');
+        renderFeedback();
+    }
+
+    function stopInterview() {
+        if (confirm("면접을 완전히 종료할까요?")) {
+            location.reload();
+        }
+    }
+
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const cleanText = text.replace(/^\d+[\.\s]*/, '');
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 1.0;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function renderFeedback() {
+        const target = document.getElementById('feedback-list');
+        target.innerHTML = '';
+
+        recordedAudios.forEach((record) => {
+            const card = document.createElement('div');
+            card.className = 'feedback-item';
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="badge ${record.isFollowUp ? 'badge-tail' : ''}">${record.isFollowUp ? '꼬리 질문' : '본 질문'}</span>
+                </div>
+                <h3 style="margin-top: 8px; font-size:14px;">${record.question}</h3>
+                
+                <div style="margin-top:10px;">
+                    <audio src="${record.audioUrl}" controls></audio>
+                </div>
+
+                <div class="rating-group">
+                    <div class="rating-field">
+                        <span>전달력 (목소리/빠르기)</span>
+                        <div class="stars" data-metric="delivery">
+                            ${[1,2,3,4,5].map(num => `<span class="star" onclick="rateStar(this, ${num})">★</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="rating-field">
+                        <span>논리성 (구조화)</span>
+                        <div class="stars" data-metric="logic">
+                            ${[1,2,3,4,5].map(num => `<span class="star" onclick="rateStar(this, ${num})">★</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                <textarea placeholder="피드백 메모 작성..." style="margin-top:8px; height:60px; font-size:12px;"></textarea>
+            `;
+            target.appendChild(card);
+        });
+    }
+
+    function rateStar(element, score) {
+        const stars = element.parentElement.children;
+        for (let i = 0; i < stars.length; i++) {
+            if (i < score) stars[i].classList.add('active');
+            else stars[i].classList.remove('active');
+        }
+    }
+</script>
+</body>
+</html>
