@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>모바일 지원 스마트 면접 연습</title>
+    <title>스마트 면접 트레이너 PRO (영상 녹화 지원)</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -50,7 +50,7 @@
 
         .hidden { display: none !important; }
 
-        /* 세팅 화면 그리드 */
+        /* 설정 화면 */
         .setup-grid {
             display: grid;
             grid-template-columns: 1fr 1.2fr;
@@ -68,7 +68,7 @@
             font-size: 16px;
             font-weight: 700;
             color: var(--text);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -100,7 +100,7 @@
             font-size: 14px;
             background: var(--card);
             outline: none;
-            -webkit-appearance: none; /* iOS 스타일 제거 */
+            -webkit-appearance: none;
         }
 
         .btn {
@@ -117,11 +117,14 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            min-height: 48px; /* 모바일 터치 최소 높이 */
+            min-height: 48px;
+            text-decoration: none;
         }
 
         .btn:active { background: #1d4ed8; }
         .btn-secondary { background: #e2e8f0; color: var(--text); }
+        .btn-accent { background: var(--success); }
+        .btn-accent:active { background: #059669; }
 
         .question-item {
             display: flex;
@@ -135,7 +138,7 @@
             margin-bottom: 8px;
         }
 
-        /* 인터뷰 화면 그리드 */
+        /* 면접 진행 화면 */
         .interview-grid {
             display: grid;
             grid-template-columns: 1.2fr 1fr;
@@ -225,10 +228,10 @@
         }
         .keyword-tag.checked { background: var(--success); color: white; border-color: var(--success); }
 
-        /* 피드백 화면 */
+        /* 결과 화면 */
         .feedback-container {
-            padding: 20px;
-            max-height: 80vh;
+            padding: 24px;
+            max-height: 85vh;
             overflow-y: auto;
         }
 
@@ -258,24 +261,29 @@
         .star { cursor: pointer; font-size: 18px; color: #cbd5e1; }
         .star.active { color: #f59e0b; }
 
-        audio { width: 100%; margin-top: 10px; }
+        .video-box {
+            text-align: center;
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
 
-        /* =======================================================
-           ★ 모바일 반응형 미디어 쿼리 (768px 이하 디바이스)
-        ========================================================= */
+        #final-video {
+            width: 100%;
+            max-width: 480px;
+            border-radius: 8px;
+            background: #1e293b;
+        }
+
         @media (max-width: 768px) {
             body { padding: 4px; }
             .app-container { border-radius: 12px; min-height: auto; }
-            
-            /* 세팅 화면 한 줄 정렬 */
             .setup-grid { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
-            
-            /* 인터뷰 화면 위아래로 분할 */
             .interview-grid { grid-template-columns: 1fr; }
             .interview-left { order: 2; padding: 16px; border-right: none; border-top: 1px solid var(--border); }
             .interview-right { order: 1; padding: 12px; min-height: 180px; }
             #webcam-view { height: 160px; }
-            
             .question-display { font-size: 16px; min-height: 60px; }
             .timer-val { font-size: 24px; }
         }
@@ -289,23 +297,24 @@
     <div id="setup-screen" class="setup-grid">
         <div class="setup-left">
             <div>
-                <h1 style="font-size: 18px; font-weight:800; margin-bottom:2px;">모바일 면접 트레이너</h1>
-                <p style="color: var(--muted); font-size: 12px;">실전형 모바일 면접을 준비해 보세요.</p>
+                <h1 style="font-size: 18px; font-weight:800; margin-bottom:2px;">스마트 면접 트레이너 PRO</h1>
+                <p style="color: var(--muted); font-size: 12px;">전체 모의면접 영상 통합 녹화 기능 제공.</p>
             </div>
             
             <div class="card">
-                <div class="section-title">⚙️ 옵션</div>
+                <div class="section-title">⚙️ 옵션 설정</div>
                 <div class="form-group">
                     <label>답변 시간 (초)</label>
                     <input type="number" id="time-limit" value="60" min="10">
                 </div>
+                
                 <div class="form-group">
-                    <label>질문 자동 읽기 (TTS)</label>
-                    <select id="tts-toggle">
-                        <option value="true">켬</option>
-                        <option value="false">끔</option>
+                    <label>면접관 목소리 선택</label>
+                    <select id="voice-select">
+                        <option value="none">불러오는 중...</option>
                     </select>
                 </div>
+
                 <div class="form-group">
                     <label>꼬리 질문 확률</label>
                     <select id="tail-ratio">
@@ -315,10 +324,10 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>카메라 사용 여부</label>
+                    <label>카메라 및 전체 녹화 설정</label>
                     <select id="camera-toggle" onchange="toggleCameraSetup()">
-                        <option value="true">전면 카메라 켜기</option>
-                        <option value="false">카메라 끄기</option>
+                        <option value="true">전면 카메라 및 영상 녹화 활성화</option>
+                        <option value="false">비활성화 (음성만 진행)</option>
                     </select>
                 </div>
             </div>
@@ -342,16 +351,15 @@
         </div>
     </div>
 
-    <!-- 인터뷰 화면 -->
+    <!-- 인터뷰 진행 화면 -->
     <div id="interview-screen" class="hidden">
         <div class="interview-grid">
             <div class="interview-right">
-                <span class="camera-placeholder" id="cam-placeholder">카메라 꺼짐</span>
-                <!-- iOS 오작동 방지를 위한 playsinline 속성 추가 -->
+                <span class="camera-placeholder" id="cam-placeholder">카메라 비활성화</span>
                 <video id="webcam-view" autoplay muted playsinline webkit-playsinline></video>
                 <div style="margin-top:8px; font-size:12px; color:#94a3b8; display:flex; align-items:center; gap:4px;">
                     <span style="display:inline-block; width:6px; height:6px; background:var(--accent); border-radius:50%;"></span>
-                    녹음 중
+                    전체 비디오/오디오 연속 녹화 중
                 </div>
             </div>
             
@@ -376,22 +384,30 @@
         </div>
     </div>
 
-    <!-- 피드백 화면 -->
+    <!-- 결과 화면 (전체 녹화물 포함) -->
     <div id="feedback-screen" class="feedback-container hidden">
-        <h1 style="font-size:18px; margin-bottom:4px;">자가 피드백</h1>
-        <p style="color:var(--muted); margin-bottom:16px; font-size:12px;">녹음된 답변을 평가하고 기록해 보세요.</p>
+        <h1 style="font-size:18px; margin-bottom:4px;">모의면접 최종 결과 리포트</h1>
+        <p style="color:var(--muted); margin-bottom:20px; font-size:12px;">아래 비디오에서 전체 답변 중 시선 처리와 말투를 확인하고 영상을 저장하세요.</p>
         
+        <!-- 전체 영상 재생 상자 -->
+        <div class="video-box" id="final-video-box">
+            <h2 style="color: white; font-size: 14px; margin-bottom: 12px;">📹 전체 녹화 모니터링 (목소리 포함)</h2>
+            <video id="final-video" controls playsinline></video>
+            <div style="margin-top: 14px;">
+                <a id="download-link" class="btn btn-accent" href="#" download="my_interview_practice.mp4">📥 면접 녹화 영상 파일 받기</a>
+            </div>
+        </div>
+
         <div id="feedback-list"></div>
 
         <div style="text-align: right; margin-top:16px;">
-            <button class="btn" onclick="location.reload()">처음으로</button>
+            <button class="btn" onclick="location.reload()">새 면접 시작하기</button>
         </div>
     </div>
 
 </div>
 
 <script>
-    // 질문 데이터 정의
     const templates = {
         hr: [
             { q: "간단한 자기소개와 지원 동기를 말씀해 주세요.", k: "자기소개,동기,강점" },
@@ -417,12 +433,79 @@
     let timer = null;
     let timeLeft = 0;
     let mediaStream = null;
-    let mediaRecorder = null;
-    let audioChunks = [];
+    
+    // 비디오/오디오 전체 연속 녹화를 위한 전역 변수
+    let masterRecorder = null;
+    let masterChunks = [];
+    
     let isFollowUpStep = false;
-    let recordedAudios = [];
+    let systemVoices = [];
+    
+    // 단순 가이드 마킹용 배열
+    let timelineMarks = [];
+    let sessionStartTime = 0;
 
-    window.onload = () => applyTemplate();
+    window.onload = () => {
+        applyTemplate();
+        loadSystemVoices();
+    };
+
+    function loadSystemVoices() {
+        if (typeof speechSynthesis === 'undefined') return;
+
+        function populateList() {
+            systemVoices = speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voice-select');
+            voiceSelect.innerHTML = '';
+
+            const koVoices = systemVoices.filter(voice => voice.lang.includes('ko') || voice.lang.includes('KO'));
+
+            if (koVoices.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = "none";
+                opt.textContent = "🔊 음성 읽기 기능 미지원 기기";
+                voiceSelect.appendChild(opt);
+                return;
+            }
+
+            const silentOpt = document.createElement('option');
+            silentOpt.value = "none";
+            silentOpt.textContent = "🔇 목소리 끄기 (자막만 보기)";
+            voiceSelect.appendChild(silentOpt);
+
+            koVoices.sort((a, b) => {
+                const aScore = a.name.includes('Natural') ? 3 : (a.name.includes('Google') ? 2 : 1);
+                const bScore = b.name.includes('Natural') ? 3 : (b.name.includes('Google') ? 2 : 1);
+                return bScore - aScore;
+            });
+
+            koVoices.forEach(voice => {
+                const opt = document.createElement('option');
+                opt.value = voice.name;
+                
+                let displayName = voice.name;
+                if (voice.name.includes('Natural')) {
+                    displayName = `[AI 고해상도] ${voice.name.replace('Microsoft', '').replace('Online', '')}`;
+                } else if (voice.name.includes('Google')) {
+                    displayName = `[부드러운 표준음] Google 한국어`;
+                } else {
+                    displayName = `[기본 음성] ${voice.name}`;
+                }
+                opt.textContent = displayName;
+                voiceSelect.appendChild(opt);
+            });
+
+            const defaultVoice = koVoices.find(v => v.name.includes('Natural')) || koVoices.find(v => v.name.includes('Google')) || koVoices[0];
+            if (defaultVoice) {
+                voiceSelect.value = defaultVoice.name;
+            }
+        }
+
+        populateList();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateList;
+        }
+    }
 
     function toggleCameraSetup() {
         const toggle = document.getElementById('camera-toggle').value === 'true';
@@ -450,12 +533,11 @@
         container.appendChild(div);
     }
 
-    // 모바일 전면 카메라 명시 지정
     async function startCamera() {
         const cameraOn = document.getElementById('camera-toggle').value === 'true';
         const constraints = {
             audio: true,
-            video: cameraOn ? { facingMode: "user" } : false // 전면(셀프) 카메라 고정
+            video: cameraOn ? { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } : false
         };
 
         try {
@@ -465,56 +547,41 @@
                 document.getElementById('cam-placeholder').classList.add('hidden');
             }
         } catch (e) {
-            console.warn("전체 장치 연결 오류:", e);
-            // 카메라 없이 오디오만 시도
+            console.warn("전체 장치 권한 확보 실패:", e);
             try {
                 mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             } catch (err) {
-                alert("답변 녹음을 하려면 마이크 접근 권한이 필요합니다.");
+                alert("면접 분석을 진행하기 위해 카메라 또는 마이크 권한을 승인해야 합니다.");
             }
         }
     }
 
-    // 모바일 기기별 오디오 미디어 타입 설정 지원 자동 감지
-    function startRecording() {
+    // 마스터 연속 녹화 제어 (전체 세션을 원테이크로 처리)
+    function startMasterRecording() {
         if (!mediaStream) return;
-        audioChunks = [];
-
+        masterChunks = [];
+        
         let options = {};
+        // 브라우저 최적화 오디오/비디오 규격 획득
         if (typeof MediaRecorder !== 'undefined') {
-            // 디바이스 지원 상태에 맞춰 분기 처리
-            if (MediaRecorder.isTypeSupported('audio/webm')) {
-                options = { mimeType: 'audio/webm' };
-            } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-                options = { mimeType: 'audio/mp4' }; // 아이폰 계열 호환성 향상
+            if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+                options = { mimeType: 'video/webm;codecs=vp9' };
+            } else if (MediaRecorder.isTypeSupported('video/webm')) {
+                options = { mimeType: 'video/webm' };
+            } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+                options = { mimeType: 'video/mp4' }; // iOS Safari 전용 대응
             }
         }
 
         try {
-            mediaRecorder = new MediaRecorder(mediaStream, options);
-            mediaRecorder.ondataavailable = e => {
-                if (e.data.size > 0) audioChunks.push(e.data);
+            masterRecorder = new MediaRecorder(mediaStream, options);
+            masterRecorder.ondataavailable = e => {
+                if (e.data.size > 0) masterChunks.push(e.data);
             };
-            mediaRecorder.onstop = () => {
-                const mimeType = options.mimeType || 'audio/webm';
-                const audioBlob = new Blob(audioChunks, { type: mimeType });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                recordedAudios.push({
-                    idx: currentIdx,
-                    isFollowUp: isFollowUpStep,
-                    question: document.getElementById('question-display').textContent,
-                    audioUrl: audioUrl
-                });
-            };
-            mediaRecorder.start();
+            masterRecorder.start();
+            sessionStartTime = Date.now();
         } catch (err) {
-            console.error("녹음 시작 실패:", err);
-        }
-    }
-
-    function stopRecording() {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
+            console.error("마스터 녹화기 구동 실패:", err);
         }
     }
 
@@ -540,10 +607,15 @@
         }
 
         await startCamera();
+        
+        // 원테이크 전체 녹화 시작
+        startMasterRecording();
+
         document.getElementById('setup-screen').classList.add('hidden');
         document.getElementById('interview-screen').classList.remove('hidden');
         currentIdx = 0;
         isFollowUpStep = false;
+        timelineMarks = [];
         loadStep();
     }
 
@@ -579,16 +651,22 @@
 
         document.getElementById('question-display').textContent = currentQuestion;
 
-        if (document.getElementById('tts-toggle').value === 'true') {
-            speak(currentQuestion);
+        // 타임라인 마크 기록 (피드백 결과 매칭용)
+        timelineMarks.push({
+            timeOffset: Math.floor((Date.now() - sessionStartTime) / 1000),
+            question: currentQuestion,
+            type: isFollowUpStep ? '꼬리질문' : '본질문'
+        });
+
+        const selectedVoiceName = document.getElementById('voice-select').value;
+        if (selectedVoiceName !== 'none') {
+            speak(currentQuestion, selectedVoiceName);
         }
 
         timeLeft = parseInt(document.getElementById('time-limit').value) || 60;
         updateTimerDisplay();
         clearInterval(timer);
         timer = setInterval(countdown, 1000);
-        
-        startRecording();
     }
 
     function countdown() {
@@ -611,22 +689,20 @@
     }
 
     function handleNext() {
-        stopRecording();
         window.speechSynthesis.cancel();
-
         const currentData = interviewSession[currentIdx];
         const tailRatio = parseFloat(document.getElementById('tail-ratio').value);
 
         if (!isFollowUpStep && (currentData.q_tail || Math.random() < tailRatio)) {
             isFollowUpStep = true;
-            setTimeout(loadStep, 600);
+            setTimeout(loadStep, 300);
         } else {
             isFollowUpStep = false;
             currentIdx++;
             if (currentIdx < interviewSession.length) {
-                setTimeout(loadStep, 600);
+                setTimeout(loadStep, 300);
             } else {
-                setTimeout(finishInterview, 600);
+                setTimeout(finishInterview, 300);
             }
         }
     }
@@ -634,61 +710,111 @@
     function finishInterview() {
         clearInterval(timer);
         window.speechSynthesis.cancel();
-        if (mediaStream) {
-            mediaStream.getTracks().forEach(track => track.stop());
-        }
+
         document.getElementById('interview-screen').classList.add('hidden');
         document.getElementById('feedback-screen').classList.remove('hidden');
-        renderFeedback();
+
+        // 마스터 리코더 정지 및 파일화 처리
+        if (masterRecorder && masterRecorder.state !== 'inactive') {
+            masterRecorder.onstop = () => {
+                const mimeType = masterRecorder.mimeType || 'video/webm';
+                const videoBlob = new Blob(masterChunks, { type: mimeType });
+                const videoUrl = URL.createObjectURL(videoBlob);
+                
+                // 플레이어 셋업 및 다운로드 버튼 링크 연동
+                const finalVideo = document.getElementById('final-video');
+                finalVideo.src = videoUrl;
+                
+                const downloadLink = document.getElementById('download-link');
+                downloadLink.href = videoUrl;
+                
+                // 기기 확장자 맞춤 자동 파일 지정 (.mp4 혹은 .webm)
+                const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+                downloadLink.download = `my_interview_practice.${extension}`;
+
+                // 비디오 박스 노출
+                document.getElementById('final-video-box').classList.remove('hidden');
+
+                // 카메라 스트림 일체 종료
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                }
+            };
+            masterRecorder.stop();
+        } else {
+            // 녹화가 꺼져있을 때 처리
+            document.getElementById('final-video-box').classList.add('hidden');
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        renderFeedbackReport();
     }
 
     function stopInterview() {
-        if (confirm("면접을 완전히 종료할까요?")) {
+        if (confirm("면접을 종료할까요? 녹화본은 끝까지 수료해야 저장됩니다.")) {
             location.reload();
         }
     }
 
-    function speak(text) {
+    function speak(text, voiceName) {
         window.speechSynthesis.cancel();
         const cleanText = text.replace(/^\d+[\.\s]*/, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
+        
+        const matchedVoice = systemVoices.find(v => v.name === voiceName);
+        if (matchedVoice) {
+            utterance.voice = matchedVoice;
+        }
+        
         utterance.lang = 'ko-KR';
-        utterance.rate = 1.0;
+        utterance.rate = 1.05;
         window.speechSynthesis.speak(utterance);
     }
 
-    function renderFeedback() {
+    // 결과지 타임라인 가이드라인 렌더링
+    function renderFeedbackReport() {
         const target = document.getElementById('feedback-list');
         target.innerHTML = '';
 
-        recordedAudios.forEach((record) => {
+        timelineMarks.forEach((mark, index) => {
             const card = document.createElement('div');
             card.className = 'feedback-item';
+            
+            // 시, 분, 초 형식 가공
+            const minutes = Math.floor(mark.timeOffset / 60);
+            const seconds = mark.timeOffset % 60;
+            const timeFormatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="badge ${record.isFollowUp ? 'badge-tail' : ''}">${record.isFollowUp ? '꼬리 질문' : '본 질문'}</span>
+                    <span class="badge ${mark.type === '꼬리질문' ? 'badge-tail' : ''}">${mark.type}</span>
+                    <span style="font-size:12px; font-weight:700; color:var(--primary);">🕒 영상 타임라인: 약 ${timeFormatted} 위치</span>
                 </div>
-                <h3 style="margin-top: 8px; font-size:14px;">${record.question}</h3>
+                <h3 style="margin-top: 8px; font-size:14px; color:var(--text);">${index + 1}. ${mark.question}</h3>
                 
-                <div style="margin-top:10px;">
-                    <audio src="${record.audioUrl}" controls></audio>
-                </div>
-
                 <div class="rating-group">
                     <div class="rating-field">
-                        <span>전달력 (목소리/빠르기)</span>
-                        <div class="stars" data-metric="delivery">
+                        <span>전달력 (목소리 톤/속도/발음)</span>
+                        <div class="stars">
                             ${[1,2,3,4,5].map(num => `<span class="star" onclick="rateStar(this, ${num})">★</span>`).join('')}
                         </div>
                     </div>
                     <div class="rating-field">
-                        <span>논리성 (구조화)</span>
-                        <div class="stars" data-metric="logic">
+                        <span>논리성 (답변 구조화 및 완성도)</span>
+                        <div class="stars">
+                            ${[1,2,3,4,5].map(num => `<span class="star" onclick="rateStar(this, ${num})">★</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="rating-field">
+                        <span>비언어적 요소 (시선 및 제스처)</span>
+                        <div class="stars">
                             ${[1,2,3,4,5].map(num => `<span class="star" onclick="rateStar(this, ${num})">★</span>`).join('')}
                         </div>
                     </div>
                 </div>
-                <textarea placeholder="피드백 메모 작성..." style="margin-top:8px; height:60px; font-size:12px;"></textarea>
+                <textarea placeholder="해당 구간 답변 개선 포인트 메모..." style="margin-top:8px; height:60px; font-size:12px;"></textarea>
             `;
             target.appendChild(card);
         });
